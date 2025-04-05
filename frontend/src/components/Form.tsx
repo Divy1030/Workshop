@@ -4,7 +4,6 @@ import { useForm, FormProvider, useFormContext } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { FiUser, FiPhone, FiMail, FiChevronRight, FiChevronLeft } from 'react-icons/fi';
-import Image from 'next/image';
 
 // Define the schema with Zod
 const formSchema = z.object({
@@ -228,7 +227,7 @@ const Step4Form = () => {
         </div>
       </div>
       <div className="text-blue-700 text-xl font-bold">
-        You've Registered Successfully.
+        You&apos;ve Registered Successfully.
       </div>
     </div>
   );
