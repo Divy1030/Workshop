@@ -50,7 +50,8 @@ export function FormProvider({ children }: { children: ReactNode }) {
     try {
       if (step === 1) {
         const { name, rollNo, branch, year, gender } = formData;
-        const result = z.object({
+        // Fix: Remove the unused variable by not assigning to 'result'
+        z.object({
           name: formSchema.shape.name,
           rollNo: formSchema.shape.rollNo,
           branch: formSchema.shape.branch,
@@ -60,7 +61,8 @@ export function FormProvider({ children }: { children: ReactNode }) {
         return true;
       } else if (step === 2) {
         const { contactNumber, email, hostlerOrDayScholar } = formData;
-        const result = z.object({
+        // Fix: Remove the unused variable by not assigning to 'result'
+        z.object({
           contactNumber: formSchema.shape.contactNumber,
           email: formSchema.shape.email,
           hostlerOrDayScholar: formSchema.shape.hostlerOrDayScholar,
