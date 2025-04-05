@@ -51,7 +51,8 @@ class RegistrationCreateView(generics.CreateAPIView):
 
 
 def verification_success(request):
-    return render(request, 'verification_success.html')
+    reg_id = request.GET.get('reg_id')
+    return render(request, 'verification_success.html',{'registration_id': reg_id})
 
 def verification_error(request):
     # Get the error reason from query parameters
@@ -99,7 +100,7 @@ class EmailVerificationView(APIView):
         registration.email_verification_token = None
         registration.token_expires_at = None
         registration.save()
-        return redirect(f"{base_url}/verification-success/")
+        return redirect(f"{base_url}/verification-success/?reg_id={registration.id}")
     
 
 @api_view(['POST'])
