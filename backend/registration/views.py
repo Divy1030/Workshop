@@ -1,3 +1,6 @@
+import hashlib
+import hmac
+import json
 from django.utils import timezone
 from django.conf import settings
 from django.core.mail import send_mail
@@ -14,6 +17,7 @@ from io import BytesIO
 import base64
 from rest_framework.decorators import api_view
 from django.views.decorators.csrf import csrf_exempt
+from django.shortcuts import render, redirect
 
 signer = TimestampSigner()
 
@@ -38,7 +42,6 @@ class RegistrationCreateView(generics.CreateAPIView):
             reverse('email-verify') + f'?token={token}&reg_id={instance.id}'
         )
 
-
         send_mail(
             subject="Verify your email",
             message=f"Please verify your email by clicking the following link: {verify_url}",
@@ -47,6 +50,14 @@ class RegistrationCreateView(generics.CreateAPIView):
         )
 
 
+def verification_success(request):
+    return render(request, 'verification_success.html')
+
+def verification_error(request):
+    # Get the error reason from query parameters
+    reason = request.GET.get('reason', 'unknown')
+    return render(request, 'verification_error.html', {'reason': reason})
+
 class EmailVerificationView(APIView):
     """
     Endpoint to verify the user's email using the token.
@@ -54,32 +65,41 @@ class EmailVerificationView(APIView):
     def get(self, request, format=None):
         token = request.GET.get('token')
         reg_id = request.GET.get('reg_id')
+
+         
+        host = request.get_host()  # e.g. "127.0.0.1:8000" or "workshop-sxnk.onrender.com"
+        protocol = "https" if request.is_secure() else "http"
+        base_url = f"{protocol}://{host}"
+
         if not token or not reg_id:
-            return Response({'detail': 'Missing token or registration id.'}, status=status.HTTP_400_BAD_REQUEST)
+            return redirect(f"{base_url}/verification-error/?reason=missing_params")
         
         try:
             registration = Registration.objects.get(id=reg_id)
         except Registration.DoesNotExist:
-            return Response({'detail': 'Registration not found.'}, status=status.HTTP_404_NOT_FOUND)
+            return redirect(f"{base_url}/verification-error/?reason=not_found")
         
+        if registration.token_expires_at is None:
+            return redirect(f"{base_url}/verification-error/?reason=missing_expiry")
+    
         # Check token expiry manually
         if registration.token_expires_at < timezone.now():
-            return Response({'detail': 'Token expired.'}, status=status.HTTP_400_BAD_REQUEST)
+            return redirect(f"{base_url}/verification-error/?reason=expired")
         
         # Verify the token
         try:
             original_email = signer.unsign(token, max_age=3600)
         except (SignatureExpired, BadSignature):
-            return Response({'detail': 'Invalid or expired token.'}, status=status.HTTP_400_BAD_REQUEST)
+            return redirect(f"{base_url}/verification-error/?reason=invalid_token")
         
         if original_email != registration.email:
-            return Response({'detail': 'Token does not match registration email.'}, status=status.HTTP_400_BAD_REQUEST)
+            return redirect(f"{base_url}/verification-error/?reason=email_mismatch")
         
         registration.is_email_verified = True
         registration.email_verification_token = None
         registration.token_expires_at = None
         registration.save()
-        return Response({'detail': 'Email verified successfully.'}, status=status.HTTP_200_OK)
+        return redirect(f"{base_url}/verification-success/")
     
 
 @api_view(['POST'])
@@ -117,6 +137,9 @@ def initiate_payment(request):
             "email": True,
         },
         "reminder_enable": True,
+        "notes": {
+            "registration_id": str(registration.id)  # Pass registration ID as a string
+        },
         # Optional: add a callback
         # "callback_url": settings.RAZORPAY_CALLBACK_URL,
         # "callback_method": "get"
@@ -165,25 +188,74 @@ def initiate_payment(request):
 @csrf_exempt
 @api_view(['POST'])
 def payment_webhook(request):
-    """
-    This endpoint receives webhook notifications from Razorpay.
-    Update the registration's payment_status based on the event received.
-    """
-    data = request.data
-    # Here, parse the data according to Razorpay's webhook format.
-    # For example, assume data contains registration_id and payment_status:
-    reg_id = data.get('registration_id')
-    status_update = data.get('payment_status')  # expected to be 'succeeded' or 'failed'
+    # Get webhook payload and headers
+    payload = request.body
+    received_signature = request.META.get('HTTP_X_RAZORPAY_SIGNATURE', '')
+
+    # Verify the signature (if you have a webhook secret set up)
+    webhook_secret = settings.RAZORPAY_WEBHOOK_SECRET  
+    expected_signature = hmac.new(
+        webhook_secret.encode('utf-8'),
+        payload,
+        hashlib.sha256
+    ).hexdigest()
+
+    if not hmac.compare_digest(received_signature, expected_signature):
+        return Response({'detail': 'Invalid signature.'}, status=status.HTTP_400_BAD_REQUEST)
+
+    try:
+        data = json.loads(payload.decode('utf-8'))
+    except json.JSONDecodeError:
+        return Response({'detail': 'Invalid JSON payload.'}, status=status.HTTP_400_BAD_REQUEST)
+
+    # Process the event
+    event_type = data.get('event')
+    payload_data = data.get('payload', {})
+
+    # Example: handling a payment link paid event
+    if event_type == 'payment_link.paid':
+        payment_link_data = payload_data.get('payment_link', {}).get('entity', {})
+        registration_id = payment_link_data.get('notes', {}).get('registration_id')
+        if registration_id:
+            try:
+                registration = Registration.objects.get(id=registration_id)
+                registration.payment_status = "succeeded"
+                registration.save()
+            except Registration.DoesNotExist:
+                return Response({'detail': 'Registration not found.'}, status=status.HTTP_404_NOT_FOUND)
     
-    if not reg_id or not status_update:
-        return Response({'detail': 'Invalid payload.'}, status=status.HTTP_400_BAD_REQUEST)
-    
+    # Example: handling a payment link failed event
+    elif event_type == 'payment_link.failed':
+        payment_link_data = payload_data.get('payment_link', {}).get('entity', {})
+        registration_id = payment_link_data.get('notes', {}).get('registration_id')
+        if registration_id:
+            try:
+                registration = Registration.objects.get(id=registration_id)
+                registration.payment_status = "failed"
+                registration.save()
+            except Registration.DoesNotExist:
+                return Response({'detail': 'Registration not found.'}, status=status.HTTP_404_NOT_FOUND)
+
+    # Respond with success
+    return Response({'detail': 'Webhook processed successfully.'}, status=status.HTTP_200_OK)
+
+
+@api_view(['GET'])
+def get_payment_status(request):
+    reg_id = request.query_params.get('registration_id')
     try:
         registration = Registration.objects.get(id=reg_id)
     except Registration.DoesNotExist:
-        return Response({'detail': 'Registration not found.'}, status=status.HTTP_404_NOT_FOUND)
-    
-    registration.payment_status = status_update
-    registration.save()
-    
-    return Response({'detail': 'Payment status updated.'}, status=status.HTTP_200_OK)
+        return Response({'detail': 'Registration not found.'}, status=404)
+
+    response_data = {
+        "payment_status": registration.payment_status
+    }
+
+    if registration.payment_status == "succeeded":
+        response_data.update({
+            "payment_time": registration.created_at,
+            "reference_id": registration.payment_reference
+        })
+
+    return Response(response_data)
