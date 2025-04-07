@@ -1,73 +1,134 @@
 'use client';
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { FiChevronRight } from 'react-icons/fi';
-import { useFormContext } from '@/context/FormContext'
 
-export default function Payment() {
-  const router = useRouter();
-  const { formData } = useFormContext();
-  const [isSubmitting, setIsSubmitting] = useState(false);
+import { useState, useEffect, useCallback, Suspense } from 'react';
+import { useSearchParams } from 'next/navigation';
+import Image from 'next/image';
 
-  const handlePayment = () => {
-    setIsSubmitting(true);
-    
-    // Simulate payment processing
-    setTimeout(() => {
-      setIsSubmitting(false);
-      
-      // Submit the full form data here
-      console.log("Form submitted:", formData);
-      
-      // Redirect to success page
-      router.push('/register/success');
-    }, 1500);
+function PaymentPageContent() {
+  const searchParams = useSearchParams();
+  const registrationId = searchParams.get('registration_id'); // Extract registration_id from the query string
+
+  const [paymentData, setPaymentData] = useState<{
+    payment_url: string;
+    qr_code: string;
+  } | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [paymentStatus, setPaymentStatus] = useState<string | null>(null);
+  const [intervalId, setIntervalId] = useState<NodeJS.Timeout | undefined>(undefined);
+
+  useEffect(() => {
+    if (registrationId) {
+      initiatePayment(parseInt(registrationId));
+    }
+  }, [registrationId]);
+
+  const initiatePayment = async (id: number) => {
+    setLoading(true);
+    setError(null);
+
+    try {
+      const response = await fetch('/api/payment/initiate', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ registration_id: id }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        setPaymentData(data.data); // Save payment_url and qr_code
+      } else {
+        setError(data.error || 'Failed to initiate payment');
+      }
+    } catch (error) {
+      console.error('Error initiating payment:', error); // Log the error for debugging
+      setError('An error occurred while initiating payment');
+    } finally {
+      setLoading(false);
+    }
   };
 
-  return (
-    <div className="space-y-6">
-      <div className="text-center text-gray-700 mb-4">
-        <p>Please complete your payment to finish registration.</p>
-        <p className="text-sm text-gray-500">Registration fee: ₹ 250</p>
-      </div>
-      
-      <div className="w-full flex flex-col items-center justify-center">
-        <div className="mb-4 relative w-48 h-48">
-          <div className="bg-gray-100 border border-gray-300 flex items-center justify-center w-48 h-48">
-            <div className="text-gray-500 text-center p-4">
-              <div className="text-lg font-bold mb-2">QR Code</div>
-              <div className="text-xs">Scan to make payment</div>
-            </div>
-          </div>
-        </div>
-        <div className="text-blue-700 text-center">
-          http://linkofpayment.joincontest123
-        </div>
-        
-        <div className="bg-blue-50 rounded-lg p-4 mt-6 text-sm w-full">
-          <p className="font-medium text-blue-700 mb-1">Security Notice:</p>
-          <p className="text-gray-600">
-            For your security, you cannot go back after initiating payment. 
-            Please ensure all details are correct before proceeding.
-          </p>
-        </div>
-      </div>
+  // Wrap checkPaymentStatus in useCallback to avoid missing dependency warnings
+  const checkPaymentStatus = useCallback(async () => {
+    try {
+      const response = await fetch(`/api/payment/status/?registration_id=${registrationId}`);
+      const data = await response.json();
 
-      <div className="flex justify-end mt-8">
-        <button
-          type="button"
-          onClick={handlePayment}
-          disabled={isSubmitting}
-          className={`px-6 py-3 bg-blue-500 hover:bg-blue-600 text-white rounded-full flex items-center justify-center
-            ${isSubmitting ? 'opacity-70 cursor-wait' : ''}`}
-        >
-          {isSubmitting ? 'Processing...' : (
-            <>
-              Complete Payment <FiChevronRight className="ml-2" />
-            </>
-          )}
-        </button>
-      </div>
+      if (response.ok) {
+        setPaymentStatus(data.data.payment_status);
+
+        if (data.data.payment_status === 'paid') {
+          alert('Payment successful!');
+          if (intervalId) clearInterval(intervalId); // Stop polling once payment is successful
+        }
+      } else {
+        setError(data.error || 'Failed to fetch payment status');
+      }
+    } catch (error) {
+      console.error('Error checking payment status:', error); // Log the error for debugging
+      setError('An error occurred while checking payment status');
+    }
+  }, [registrationId, intervalId]);
+
+  useEffect(() => {
+    if (paymentData) {
+      const interval = setInterval(() => {
+        checkPaymentStatus();
+      }, 5000); // Poll every 5 seconds
+
+      setIntervalId(interval);
+
+      return () => clearInterval(interval); // Cleanup interval on component unmount
+    }
+  }, [paymentData, checkPaymentStatus]);
+
+  return (
+    <div className="p-6">
+      <h1 className="text-2xl font-bold mb-4">Payment Page</h1>
+
+      {loading && <p>Loading...</p>}
+
+      {error && <p className="text-red-500">{error}</p>}
+
+      {paymentData && (
+        <div>
+          <p className="mb-4">Scan the QR code below or click the link to make the payment:</p>
+          <div className="mb-4">
+            <Image
+              src={`data:image/png;base64,${paymentData.qr_code}`}
+              alt="Payment QR Code"
+              width={192}
+              height={192}
+              className="mx-auto"
+            />
+          </div>
+          <a
+            href={paymentData.payment_url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-blue-500 underline"
+          >
+            Click here to pay online
+          </a>
+        </div>
+      )}
+
+      {paymentStatus && (
+        <div className="mt-6">
+          <p>Payment Status: <strong>{paymentStatus}</strong></p>
+        </div>
+      )}
     </div>
+  );
+}
+
+export default function PaymentPage() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <PaymentPageContent />
+    </Suspense>
   );
 }

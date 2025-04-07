@@ -1,5 +1,4 @@
 'use client';
-// import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { FiUser, FiChevronRight } from 'react-icons/fi';
 import { useForm } from 'react-hook-form';
@@ -83,8 +82,17 @@ export default function PersonalDetails() {
             >
               <option value="">Select</option>
               <option value="CSE">CSE</option>
+              <option value="CS">CS</option>
+              <option value="CS-IT">CS-IT</option>
+              <option value="CSE-DS">CSE-DS</option>
+              <option value="CS-HINDI">CS-HINDI</option>
+              <option value="CSE-AIML">CSE-AIML</option>
+              <option value="IT">IT</option>
+              <option value="AIML">AIML</option>
               <option value="ECE">ECE</option>
-              <option value="MECH">MECH</option>
+              <option value="ME">ME</option>
+              <option value="EN">EN</option>
+              <option value="CIVIL">CIVIL</option>
             </select>
             <div className="absolute right-4 pointer-events-none">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="text-blue-700">
