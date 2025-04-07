@@ -40,6 +40,7 @@ class Registration(models.Model):
     student_number = models.CharField(max_length=10)
     branch = models.CharField(max_length=10, choices=BRANCH_CHOICES)
     gender = models.CharField(max_length=10, choices=GENDER_CHOICES)
+    year = models.CharField(max_length=10, choices=YEAR_CHOICES)
 
     # CONTACT DETAILS
     phone = models.CharField(max_length=12)

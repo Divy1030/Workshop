@@ -5,7 +5,7 @@ class RegistrationSerializer(serializers.ModelSerializer):
     class Meta:
         model = Registration
         fields = [
-            'id', 'full_name', 'student_number', 'branch', 'gender',
+            'id', 'full_name', 'student_number', 'branch', 'gender','year',
             'phone', 'email', 'living_type',
             'is_email_verified', 'payment_status', 'payment_reference',
             'created_at', 'updated_at'
