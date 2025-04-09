@@ -1,23 +1,22 @@
 import type { Metadata } from "next";
-import { Inter, DM_Sans } from "next/font/google";
+import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
+import { FormProvider } from "@/context/FormContext";
+import { Toaster } from "react-hot-toast";
 
-const inter = Inter({
+const geistSans = Geist({
+  variable: "--font-geist-sans",
   subsets: ["latin"],
-  weight: ["400", "600", "700"],
-  variable: "--font-inter",
 });
 
-const dmSans = DM_Sans({
+const geistMono = Geist_Mono({
+  variable: "--font-geist-mono",
   subsets: ["latin"],
-  weight: ["400", "500", "700"],
-  variable: "--font-dm-sans",
 });
 
 export const metadata: Metadata = {
-  title: "Render 3.0",
-  description:
-    "CSI student registration form for Render 3.0,",
+  title: "CSI Render 3.0 Registration",
+  description: "Registration for CSI Render 3.0 workshop",
 };
 
 export default function RootLayout({
@@ -26,8 +25,15 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${inter.variable} ${dmSans.variable}`}>
-      <body className="font-sans">{children}</body>
+    <html lang="en">
+      <body
+        className={`${geistSans.variable} ${geistMono.variable} antialiased bg-gray-50`}
+      >
+        <FormProvider>
+          <Toaster position="top-center" />
+          {children}
+        </FormProvider>
+      </body>
     </html>
   );
 }
