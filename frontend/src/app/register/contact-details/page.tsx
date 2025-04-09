@@ -181,6 +181,10 @@ export default function ContactDetails() {
           Next <FiChevronRight className="ml-2" />
         </button>
       </div>
+
+      <Link href="/TermsAndConditions">
+        <div className='mt-8 text-xs flex justify-center text-black text-opacity-40'>Terms and Conditions || Privacy Policy || ©CSI Akgec</div>
+        </Link>
     </form>
   );
 }
