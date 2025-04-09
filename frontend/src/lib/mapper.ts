@@ -1,5 +1,5 @@
-import { FormData } from "@/context/FormContext";
-import { RegistrationData } from "@/lib/api";
+import { FormData } from "@/context/FormContent";
+import { RegistrationData } from "@/types/form";
 
 export function mapFormToRegistrationData(formData: FormData): RegistrationData {
   // Map year value: In frontend it's "1", "2", etc., but in backend it's "1st", "2nd", etc.

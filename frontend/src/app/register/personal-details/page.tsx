@@ -4,7 +4,7 @@ import { FiUser, FiChevronRight } from 'react-icons/fi';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { useFormContext, formSchema } from '@/context/FormContext';
+import { useFormContext, formSchema } from '@/context/FormContent';
 
 // Extract only the fields needed for this step
 const personalDetailsSchema = z.object({
@@ -53,7 +53,7 @@ export default function PersonalDetails() {
       </div>
 
       <div className="relative">
-        <label className="absolute text-blue-700 text-sm font-medium -top-2 left-4 bg-white px-1">University Roll no</label>
+        <label className="absolute text-blue-700 text-sm font-medium -top-2 left-4 bg-white px-1">Student Number</label>
         <div className="flex items-center">
           <input
             type="text"

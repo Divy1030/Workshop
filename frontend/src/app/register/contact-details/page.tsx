@@ -6,8 +6,8 @@ import { FiPhone, FiMail, FiChevronRight, FiChevronLeft } from 'react-icons/fi';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { useFormContext, formSchema } from '@/context/FormContext';
-import { mapFormToRegistrationData } from '@/lib/mappers';
+import { useFormContext, formSchema } from '@/context/FormContent';
+import { mapFormToRegistrationData } from '@/lib/mapper';
 
 // Extract only the fields needed for this step
 const contactDetailsSchema = z.object({
@@ -126,7 +126,7 @@ export default function ContactDetails() {
         ) : emailSent ? (
           <>Verification Email Sent <span className="ml-2">✓</span></>
         ) : (
-          <>Send Email Verification Link <FiChevronRight className="ml-2" /></>
+          <>Click here to verify OTP <FiChevronRight className="ml-2" /></>
         )}
       </button>
 
