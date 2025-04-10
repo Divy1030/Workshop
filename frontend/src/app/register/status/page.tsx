@@ -1,13 +1,22 @@
 "use client";
 import React from "react";
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
 
 const StatusPage = () => {
-  const searchParams = useSearchParams();
-  const status = searchParams.get("status");
-  const paymentId = searchParams.get("payment_id");
-  const orderId = searchParams.get("order_id");
+  // Instead of using useSearchParams, we'll access URL parameters directly
+  // This avoids the need for a Suspense boundary
+  const getSearchParam = (paramName: string): string | null => {
+    // Only run in client-side
+    if (typeof window !== 'undefined') {
+      const urlParams = new URLSearchParams(window.location.search);
+      return urlParams.get(paramName);
+    }
+    return null;
+  };
+  
+  const status = getSearchParam("status");
+  const paymentId = getSearchParam("payment_id");
+  const orderId = getSearchParam("order_id");
   
   const isSuccess = status === "success";
 

@@ -2,17 +2,53 @@
 import React from "react";
 import { useState } from "react";
 import Script from "next/script";
-import Image from "next/image";
+// import Image from "next/image";
 import { useRouter } from "next/navigation";
 
+// Define proper types instead of using 'any'
 declare global {
   interface Window {
-    Razorpay: any;
+    Razorpay: RazorpayConstructor;
   }
 }
 
+// Define Razorpay interface types
+interface RazorpayConstructor {
+  new (options: RazorpayOptions): RazorpayInstance;
+}
+
+interface RazorpayInstance {
+  open: () => void;
+}
+
+interface RazorpayOptions {
+  key: string;
+  amount: number;
+  currency: string;
+  name: string;
+  description: string;
+  order_id: string;
+  handler: (response: RazorpayResponse) => void;
+  prefill?: {
+    name?: string;
+    email?: string;
+    contact?: string;
+  };
+  theme?: {
+    color?: string;
+  };
+  modal?: {
+    ondismiss?: () => void;
+  };
+}
+
+interface RazorpayResponse {
+  razorpay_payment_id: string;
+  razorpay_order_id: string;
+  razorpay_signature?: string;
+}
+
 const PaymentPage = () => {
-  const AMOUNT = 10000; // ₹100 in paise
   const [isProcessing, setIsProcessing] = useState(false);
   const router = useRouter();
 
@@ -40,14 +76,14 @@ const PaymentPage = () => {
         throw new Error("Invalid order data received");
       }
       
-      const options = {
+      const options: RazorpayOptions = {
         key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || "rzp_test_aZ74nXNctnJW7H",
         amount: data.amount,
         currency: data.currency || "INR",
         name: "CSI Render 3.0",
         description: "Workshop Registration Fee",
         order_id: data.id,
-        handler: function (response: any) {
+        handler: function (response: RazorpayResponse) {
           // Redirect to status page (step 4) with success and payment details
           router.push(`/register/status?status=success&payment_id=${response.razorpay_payment_id}&order_id=${response.razorpay_order_id}`);
           setIsProcessing(false);

@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import Razorpay from "razorpay";
 
-export async function POST(request: NextRequest) {
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+export async function POST(_request: NextRequest) {
   try {
     // Initialize Razorpay with proper error handling
     const razorpay = new Razorpay({
@@ -10,7 +11,7 @@ export async function POST(request: NextRequest) {
     });
 
     const options = {
-      amount: 10000, // ₹250 in paise
+      amount: 10000, // ₹100 in paise
       currency: "INR",
       receipt: `receipt_${Date.now()}`,
       payment_capture: 1,
