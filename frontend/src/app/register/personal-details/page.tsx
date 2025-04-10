@@ -5,10 +5,8 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useFormContext, formSchema } from '@/context/FormContent';
-import {  useState } from 'react';
+import { useState } from 'react';
 import { useGoogleReCaptcha } from "react-google-recaptcha-v3"
-// import { url } from 'inspector';
-// import Link from 'next/link';
 
 // Extract only the fields needed for this step
 const personalDetailsSchema = z.object({
@@ -28,11 +26,10 @@ export default function PersonalDetails() {
   const { executeRecaptcha } = useGoogleReCaptcha();
   const [, setSubmit] = useState('');
 
-
-  const handleNext = async() => {
+  const handleNext = async () => {
     setSubmit('');
 
-    if(!executeRecaptcha){
+    if (!executeRecaptcha) {
       console.log("not available to execute recaptcha");
       return false;
     }
@@ -49,24 +46,21 @@ export default function PersonalDetails() {
         gRecaptchaToken,
       }),
     });
-    
+
     const data = await response.json();
     console.log("Resonse#####", data)
-    
 
     if (data?.success === true) {
       console.log(`Success with score: ${data?.score}`);
       setSubmit('ReCaptcha Verified!!!####!!')
       return true;
-    } else{
+    } else {
       console.log(`Failure with score: ${data?.score}`);
       setSubmit("Failed to verify recaptcha! You must try again later")
       return false
     }
   }
 
-
-  
   const { register, handleSubmit, formState: { errors } } = useForm<PersonalDetailsData>({
     resolver: zodResolver(personalDetailsSchema),
     defaultValues: {
@@ -78,17 +72,11 @@ export default function PersonalDetails() {
     }
   });
 
-  // const onSubmit = (data: PersonalDetailsData) => {
-  //   updateFormData(data);
-  //   router.push('/register/contact-details');
-  // };
-
-
   const onSubmit = async (data: PersonalDetailsData) => {
     updateFormData(data);
-    
+
     const isVerified = await handleNext(); // 👈 Await reCAPTCHA
-  
+
     if (isVerified) {
       router.push('/register/contact-details'); // ✅ Only navigate if verified
     } else {
@@ -96,7 +84,6 @@ export default function PersonalDetails() {
       // Optionally, you could show a toast or error message here
     }
   };
-  
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
@@ -218,11 +205,15 @@ export default function PersonalDetails() {
         </button>
       </div>
 
-      <div className="mt-8 text-xs flex justify-center text-black text-opacity-40">
-        <a href="/TermsAndConditions" target='_blank'>Terms and Conditions</a>
-        <span className="mx-2">||</span>
-        <a href="/privacy-policy" target='_blanck'>Privacy Policy</a>
-        <span className="mx-2">||</span>
+      <div className="mt-8 text-xs flex flex-wrap justify-center gap-x-2 gap-y-1 text-black text-opacity-40">
+        <a href="/TermsAndConditions" target="_blank" rel="noopener noreferrer">Terms and Conditions</a>
+        <span>|</span>
+        <a href="/privacy-policy" target="_blank" rel="noopener noreferrer">Privacy Policy</a>
+        <span>|</span>
+        <a href="/refund-policy" target="_blank" rel="noopener noreferrer">Refund Policy</a>
+        <span>|</span>
+        <a href="/contact-us" target="_blank" rel="noopener noreferrer">Contact Us</a>
+        <span>|</span>
         <a href="https://csiakgec.co.in/" target="_blank" rel="noopener noreferrer">©CSI Akgec</a>
       </div>
     </form>
