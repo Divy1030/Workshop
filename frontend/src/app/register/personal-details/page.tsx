@@ -5,9 +5,9 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useFormContext, formSchema } from '@/context/FormContent';
-import { FormEvent, useState } from 'react';
+import {  useState } from 'react';
 import { useGoogleReCaptcha } from "react-google-recaptcha-v3"
-import { url } from 'inspector';
+// import { url } from 'inspector';
 import Link from 'next/link';
 
 // Extract only the fields needed for this step
@@ -26,7 +26,7 @@ export default function PersonalDetails() {
   const { formData, updateFormData } = useFormContext();
 
   const { executeRecaptcha } = useGoogleReCaptcha();
-  const [submit, setSubmit] = useState('');
+  const [, setSubmit] = useState('');
 
 
   const handleNext = async() => {

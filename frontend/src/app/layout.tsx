@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Inter, DM_Sans } from "next/font/google";
 import "./globals.css";
-import { ReactNode } from "react";
+// import { ReactNode } from "react";
 import GoogleCaptchaWrapper from "./GoogleCaptchaWrapper";
 import Script from "next/script";
 
@@ -22,16 +22,16 @@ export const metadata: Metadata = {
   description: "CSI student registration form for Render 3.0,",
 };
 
-interface Props {
-  children: ReactNode;
-  reCaptchaKey: string;
-  scriptProps?: {
-    async?: boolean;
-    defer?: boolean;
-    appendTo?: 'head' | 'body';
-    nonce?: string;
-  };
-}
+// interface Props {
+//   children: ReactNode;
+//   reCaptchaKey: string;
+//   scriptProps?: {
+//     async?: boolean;
+//     defer?: boolean;
+//     appendTo?: 'head' | 'body';
+//     nonce?: string;
+//   };
+// }
 
 export default function RootLayout({
   children,

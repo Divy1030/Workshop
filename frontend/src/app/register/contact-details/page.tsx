@@ -7,7 +7,8 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useFormContext, formSchema } from '@/context/FormContent';
-import { mapFormToRegistrationData } from '@/lib/mapper';
+// Remove the unused import
+// import { mapFormToRegistrationData } from '@/lib/mapper';
 
 // Extract only the fields needed for this step
 const contactDetailsSchema = z.object({
@@ -189,7 +190,7 @@ export default function ContactDetails() {
 
         {emailSent && !verified && !showOtpDialog && !showSimulatedEmail && (
           <div className="bg-blue-50 text-blue-700 p-3 rounded-md text-sm">
-            A verification email with OTP has been sent to your email address. Please check your inbox and click "Verify OTP" to enter the code.
+            A verification email with OTP has been sent to your email address. Please check your inbox and click &quot;Verify OTP&quot; to enter the code.
           </div>
         )}
 
@@ -272,7 +273,7 @@ export default function ContactDetails() {
                 <span className="font-mono font-bold text-2xl tracking-wider text-gray-800">{generatedOtp}</span>
               </div>
               
-              <p className="text-sm text-gray-500">This code will expire in 10 minutes. If you didn't request this code, please ignore this email.</p>
+              <p className="text-sm text-gray-500">This code will expire in 10 minutes. If you didn&apos;t request this code, please ignore this email.</p>
             </div>
             
             <div className="pt-4 flex justify-center">
