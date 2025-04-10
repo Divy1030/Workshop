@@ -1,6 +1,9 @@
 import type { Metadata } from "next";
 import { Inter, DM_Sans } from "next/font/google";
 import "./globals.css";
+import { ReactNode } from "react";
+import GoogleCaptchaWrapper from "./GoogleCaptchaWrapper";
+import Script from "next/script";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -16,9 +19,19 @@ const dmSans = DM_Sans({
 
 export const metadata: Metadata = {
   title: "Render 3.0",
-  description:
-    "CSI student registration form for Render 3.0,",
+  description: "CSI student registration form for Render 3.0,",
 };
+
+interface Props {
+  children: ReactNode;
+  reCaptchaKey: string;
+  scriptProps?: {
+    async?: boolean;
+    defer?: boolean;
+    appendTo?: 'head' | 'body';
+    nonce?: string;
+  };
+}
 
 export default function RootLayout({
   children,
@@ -27,7 +40,21 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className={`${inter.variable} ${dmSans.variable}`}>
-      <body className="font-sans">{children}</body>
+      <body className="font-sans">
+        <Script
+          src={`https://www.google.com/recaptcha/api.js?render=${process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY}`}
+          strategy="beforeInteractive"
+        />
+        <GoogleCaptchaWrapper
+         reCaptchaKey={process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY!}
+         scriptProps={{
+           async: true,
+           defer: true,
+           appendTo: 'head',
+           nonce: undefined,
+         }}
+         >{children}</GoogleCaptchaWrapper>
+      </body>
     </html>
   );
 }

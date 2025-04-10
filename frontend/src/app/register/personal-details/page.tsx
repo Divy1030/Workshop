@@ -5,6 +5,10 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useFormContext, formSchema } from '@/context/FormContent';
+import { FormEvent, useState } from 'react';
+import { useGoogleReCaptcha } from "react-google-recaptcha-v3"
+import { url } from 'inspector';
+import Link from 'next/link';
 
 // Extract only the fields needed for this step
 const personalDetailsSchema = z.object({
@@ -20,6 +24,48 @@ type PersonalDetailsData = z.infer<typeof personalDetailsSchema>;
 export default function PersonalDetails() {
   const router = useRouter();
   const { formData, updateFormData } = useFormContext();
+
+  const { executeRecaptcha } = useGoogleReCaptcha();
+  const [submit, setSubmit] = useState('');
+
+
+  const handleNext = async() => {
+    setSubmit('');
+
+    if(!executeRecaptcha){
+      console.log("not available to execute recaptcha");
+      return false;
+    }
+
+    const gRecaptchaToken = await executeRecaptcha('inquirySubmit');
+
+    const response = await fetch("/api/recaptchaSubmit", {
+      method: "POST",
+      headers: {
+        Accept: "application/json, text/plain, */*",
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        gRecaptchaToken,
+      }),
+    });
+    
+    const data = await response.json();
+    console.log("Resonse#####", data)
+    
+
+    if (data?.success === true) {
+      console.log(`Success with score: ${data?.score}`);
+      setSubmit('ReCaptcha Verified!!!####!!')
+      return true;
+    } else{
+      console.log(`Failure with score: ${data?.score}`);
+      setSubmit("Failed to verify recaptcha! You must try again later")
+      return false
+    }
+  }
+
+
   
   const { register, handleSubmit, formState: { errors } } = useForm<PersonalDetailsData>({
     resolver: zodResolver(personalDetailsSchema),
@@ -32,10 +78,25 @@ export default function PersonalDetails() {
     }
   });
 
-  const onSubmit = (data: PersonalDetailsData) => {
+  // const onSubmit = (data: PersonalDetailsData) => {
+  //   updateFormData(data);
+  //   router.push('/register/contact-details');
+  // };
+
+
+  const onSubmit = async (data: PersonalDetailsData) => {
     updateFormData(data);
-    router.push('/register/contact-details');
+    
+    const isVerified = await handleNext(); // 👈 Await reCAPTCHA
+  
+    if (isVerified) {
+      router.push('/register/contact-details'); // ✅ Only navigate if verified
+    } else {
+      console.error("reCAPTCHA verification failed");
+      // Optionally, you could show a toast or error message here
+    }
   };
+  
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
@@ -156,6 +217,10 @@ export default function PersonalDetails() {
           Next <FiChevronRight className="ml-2" />
         </button>
       </div>
+
+      <Link href="/TermsAndConditions">
+        <div className='mt-8 text-xs flex justify-center text-black text-opacity-40'>Terms and Conditions || Privacy Policy || ©CSI Akgec</div>
+        </Link>
     </form>
   );
 }
