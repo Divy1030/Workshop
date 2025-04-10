@@ -8,7 +8,7 @@ export default function TermsAndConditions() {
             <div>
               <p className="font-semibold">1. Payment Fees:</p>
               <ul className="list-disc pl-5">
-                <li>1.1. Participation in our web development workshops requires payment of INR. 200.</li>
+                <li>1.1. Participation in our web development workshops requires payment of INR. 100.</li>
                 <li>1.2. Payment fees must be made in full prior to the commencement of the workshop.</li>
                 <li>1.3. Failure to make payment in accordance with the specified terms may result in the cancellation of your registration for the workshop.</li>
               </ul>
@@ -21,7 +21,7 @@ export default function TermsAndConditions() {
                 <li>In case of discrepancy, contact us. Feel free to contact, we are here to assist you.</li>
               </ul>
               <p className="mt-2 underline font-medium">Contact Us:</p>
-              <p>If you have any questions or concerns regarding our refund policy, please feel free to contact us at <a href="mailto:csichapters@gmail.com" className="text-blue-700">csichapters@gmail.com</a> or <a href="tel:+919151270246" className="text-blue-700">+91 9151270246</a>. We are here to assist you.</p>
+              <p>If you have any questions or concerns regarding our refund policy, please feel free to contact us at <a href="mailto:csichapters@gmail.com" className="text-blue-700">csichapters@gmail.com</a> or <a href="tel:+919151270246" className="text-blue-700">+91 9430450071</a>. We are here to assist you.</p>
             </div>
   
             <div>

@@ -8,7 +8,7 @@ import { useFormContext, formSchema } from '@/context/FormContent';
 import {  useState } from 'react';
 import { useGoogleReCaptcha } from "react-google-recaptcha-v3"
 // import { url } from 'inspector';
-import Link from 'next/link';
+// import Link from 'next/link';
 
 // Extract only the fields needed for this step
 const personalDetailsSchema = z.object({
@@ -218,9 +218,13 @@ export default function PersonalDetails() {
         </button>
       </div>
 
-      <Link href="/TermsAndConditions">
-        <div className='mt-8 text-xs flex justify-center text-black text-opacity-40'>Terms and Conditions || Privacy Policy || ©CSI Akgec</div>
-        </Link>
+      <div className="mt-8 text-xs flex justify-center text-black text-opacity-40">
+        <a href="/TermsAndConditions" target='_blank'>Terms and Conditions</a>
+        <span className="mx-2">||</span>
+        <a href="/privacy-policy" target='_blanck'>Privacy Policy</a>
+        <span className="mx-2">||</span>
+        <a href="https://csiakgec.co.in/" target="_blank" rel="noopener noreferrer">©CSI Akgec</a>
+      </div>
     </form>
   );
 }
