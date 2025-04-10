@@ -1,55 +1,23 @@
-// import { headers } from "next/headers";
-// import { NextResponse } from "next/server";
-
-// export async function POST(request: Request, response: Response){
-//     const secretKey = process.env.RECAPTCHA_SECRET_KEY ;
-
-//     const postData = await request.json();
-
-//     const { gRecaptchaToken } = postData;
-    
-//     let res;
-
-//     const formData = `secret=${secretKey}&response=${gRecaptchaToken}`;
-
-//     try {
-//         const response = await fetch("https://www.google.com/recaptcha/api/siteverify", {
-//             method: "POST",
-//             headers: {
-//               "Content-Type": "application/x-www-form-urlencoded",
-//             },
-//             body: formData,
-//           });
-          
-//           res = await response.json();
-//           console.log("response at passing token######", res)
-          
-//     } catch (error) {
-//         console.log("the task terminated at sending and verifing token")
-//         return NextResponse.json({success: false})
-//     }
-
-//     if(res && res.success && res.score > 0.5){
-//         console.log("res.data?.score:###", res.data?.score);
-
-//         return NextResponse.json({
-//             success: true,
-//             score: res.score,
-//         });
-//     } else {
-//         return NextResponse.json({ success: false });
-//     }
-// }
-
 import { NextResponse } from "next/server";
 
 export async function POST(request: Request) {
+  // Add CORS headers
+  const origin = request.headers.get('origin');
+  
   const secretKey = process.env.RECAPTCHA_SECRET_KEY;
 
   if (!secretKey) {
-    return NextResponse.json(
-      { success: false, message: "Missing reCAPTCHA secret key." },
-      { status: 500 }
+    return new NextResponse(
+      JSON.stringify({ success: false, message: "Missing reCAPTCHA secret key." }),
+      {
+        status: 500,
+        headers: {
+          'Content-Type': 'application/json',
+          'Access-Control-Allow-Origin': origin || '*',
+          'Access-Control-Allow-Methods': 'POST, OPTIONS',
+          'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+        },
+      }
     );
   }
 
@@ -57,9 +25,17 @@ export async function POST(request: Request) {
     const { gRecaptchaToken } = await request.json();
 
     if (!gRecaptchaToken) {
-      return NextResponse.json(
-        { success: false, message: "Missing reCAPTCHA token." },
-        { status: 400 }
+      return new NextResponse(
+        JSON.stringify({ success: false, message: "Missing reCAPTCHA token." }),
+        {
+          status: 400,
+          headers: {
+            'Content-Type': 'application/json',
+            'Access-Control-Allow-Origin': origin || '*',
+            'Access-Control-Allow-Methods': 'POST, OPTIONS',
+            'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+          },
+        }
       );
     }
 
@@ -77,23 +53,49 @@ export async function POST(request: Request) {
 
     console.log("Google reCAPTCHA response:", data);
 
-    if (data.success && data.score > 0.5) {
-      return NextResponse.json({
-        success: true,
+    return new NextResponse(
+      JSON.stringify({
+        success: data.success && data.score > 0.5,
         score: data.score,
-      });
-    } else {
-      return NextResponse.json({
-        success: false,
-        score: data.score,
-        message: "reCAPTCHA verification failed.",
-      });
-    }
+        message: data.success && data.score > 0.5 ? "Verification successful" : "reCAPTCHA verification failed",
+      }),
+      {
+        status: 200,
+        headers: {
+          'Content-Type': 'application/json',
+          'Access-Control-Allow-Origin': origin || '*',
+          'Access-Control-Allow-Methods': 'POST, OPTIONS',
+          'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+        },
+      }
+    );
   } catch (error) {
     console.error("Error verifying reCAPTCHA:", error);
-    return NextResponse.json(
-      { success: false, message: "Internal server error." },
-      { status: 500 }
+    return new NextResponse(
+      JSON.stringify({ success: false, message: "Internal server error." }),
+      {
+        status: 500,
+        headers: {
+          'Content-Type': 'application/json',
+          'Access-Control-Allow-Origin': origin || '*',
+          'Access-Control-Allow-Methods': 'POST, OPTIONS',
+          'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+        },
+      }
     );
   }
+}
+
+// Handle OPTIONS requests for CORS preflight
+export async function OPTIONS(request: Request) {
+  const origin = request.headers.get('origin');
+  
+  return new NextResponse(null, {
+    status: 200,
+    headers: {
+      'Access-Control-Allow-Origin': origin || '*',
+      'Access-Control-Allow-Methods': 'POST, OPTIONS',
+      'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+    },
+  });
 }
