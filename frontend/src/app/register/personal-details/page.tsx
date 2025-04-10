@@ -161,8 +161,6 @@ export default function PersonalDetails() {
               <option value="">Select</option>
               <option value="1">1st Year</option>
               <option value="2">2nd Year</option>
-              <option value="3">3rd Year</option>
-              <option value="4">4th Year</option>
             </select>
             <div className="absolute right-4 pointer-events-none">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="text-blue-700">

@@ -4,14 +4,23 @@ import { z } from 'zod';
 
 // Define the schema with Zod (same as before)
 export const formSchema = z.object({
-  name: z.string().min(1, "Name is required"),
-  rollNo: z.string().min(1, "Roll number is required"),
+  name: z.string().min(1, "Name is required").max(15, "enter only official name please")
+  .regex(/^[a-zA-Z0-9_ ]+$/, {message: 'Name can only contain letters, numbers, and underscores'}),
+
+  rollNo: z.string().min(1, "Student number is required").max(8,"enter only valid roll no").regex(/^(24|23)\d*$/, {message: 'This workshop is only for 1st or 2nd year please check student no. again'}),
+
   branch: z.string().min(1, "Branch is required"),
+
   year: z.string().min(1, "Year is required"),
+
   gender: z.enum(["Male", "Female"]),
-  contactNumber: z.string().min(10, "Contact number must be at least 10 digits"),
-  email: z.string().email("Invalid email format"),
-  hostlerOrDayScholar: z.enum(["Hostler", "Days Schlor"]),
+
+  contactNumber: z.string().min(10, "Contact number must be at least 10 digits").max(10, "enter a valid phone number only")
+  .regex(/^(?:\+91[\-\s]?|0)?[6-9]\d{9}$/, {message: 'enter a valid phone number for india'}),
+
+  email: z.string().email("Invalid email format").regex(/^[a-zA-Z]+[0-9]+@akgec\.ac\.in$/,{message: 'Enter university email only that is followed by @akgec.ac.in'}),
+
+  hostlerOrDayScholar: z.enum(["Hostler", "Days Scholar"]),
 });
 
 export type FormData = z.infer<typeof formSchema>;
